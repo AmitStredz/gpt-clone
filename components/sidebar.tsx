@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { PenSquare, Search, BookOpen, Sparkles, Users } from "lucide-react"
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs"
+import { useEffect, useState } from 'react'
 
 interface SidebarProps {
   isOpen: boolean
@@ -13,22 +14,20 @@ interface SidebarProps {
   onNewChat: () => void
 }
 
-const chatHistory = [
-  "Greeting exchange",
-  "Assignment Breakdown ChatGPT...",
-  "Formatted developer guidelines",
-  "GitHub token setup",
-  "NPM dependency conflict",
-  "Resume analysis and improvement",
-  "Cover letter revision",
-  "Convert salary to INR",
-  "Stash and switch branches",
-  "Chrome extension alarm test",
-  "Create branch from CL",
-]
+type ConversationItem = { id: string; title: string }
 
 export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat }: SidebarProps) {
   if (!isOpen) return null
+
+  const [items, setItems] = useState<ConversationItem[]>([])
+
+  const loadConversations = () => {
+    fetch('/api/conversations')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => setItems((data?.conversations ?? []).map((c: any) => ({ id: c.id, title: c.title }))))
+      .catch(() => setItems([]))
+  }
+  useEffect(() => { loadConversations() }, [isOpen, currentChat])
 
   return (
     <div className="w-[260px] bg-[#171717] border-r border-[#2f2f2f] flex flex-col h-full">
@@ -69,16 +68,16 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
         <div className="text-xs text-[#8e8ea0] font-medium mb-2 px-3">Chats</div>
         <ScrollArea className="h-full">
           <div className="space-y-1 pb-4">
-            {chatHistory.map((chat, index) => (
+            {items.map((c) => (
               <Button
-                key={index}
+                key={c.id}
                 variant="ghost"
                 className={`w-full justify-start text-left text-white hover:bg-[#2f2f2f] h-11 px-3 text-sm font-normal ${
-                  currentChat === chat ? "bg-[#2f2f2f]" : ""
+                  currentChat === c.id ? "bg-[#2f2f2f]" : ""
                 }`}
-                onClick={() => onChatSelect(chat)}
+                onClick={() => onChatSelect(c.id)}
               >
-                <span className="truncate">{chat}</span>
+                <span className="truncate">{c.title}</span>
               </Button>
             ))}
           </div>

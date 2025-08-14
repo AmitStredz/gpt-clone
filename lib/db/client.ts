@@ -24,6 +24,9 @@ export function getMongoClient(): MongoClient {
 export async function getDb() {
   const client = getMongoClient()
   await client.connect()
-  return client.db()
+  // Use database from URI path if present, else default name
+  const url = new URL(process.env.MONGODB_URI as string)
+  const dbName = (url.pathname && url.pathname !== '/') ? decodeURIComponent(url.pathname.slice(1)) : undefined
+  return client.db(dbName)
 }
 
