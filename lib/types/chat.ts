@@ -10,6 +10,11 @@ export interface Attachment {
   width?: number
   height?: number
   textExtractSummary?: string
+  // Google File API properties for file processing
+  googleFileUri?: string
+  googleFileName?: string
+  // Original filename as uploaded by user
+  originalFileName?: string
 }
 
 export interface Message {

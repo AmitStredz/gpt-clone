@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { PenSquare, Search, BookOpen, Sparkles, Users } from "lucide-react"
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs"
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 interface SidebarProps {
@@ -35,19 +36,19 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
       <div className="p-2 space-y-1 flex-shrink-0">
         <Button
           variant="ghost"
-          className="w-full justify-start text-white hover:bg-[#2f2f2f] h-11 px-3"
+          className="w-full justify-start text-white hover:bg-[#2f2f2f] h-11 px-3 cursor-pointer"
           onClick={onNewChat}
         >
           <PenSquare className="w-4 h-4 mr-3" />
           New chat
         </Button>
 
-        <Button variant="ghost" className="w-full justify-start text-white hover:bg-[#2f2f2f] h-11 px-3">
+        <Button variant="ghost" className="w-full justify-start text-white hover:bg-[#2f2f2f] h-11 px-3 cursor-pointer">
           <Search className="w-4 h-4 mr-3" />
           Search chats
         </Button>
 
-        <Button variant="ghost" className="w-full justify-start text-white hover:bg-[#2f2f2f] h-11 px-3">
+        <Button variant="ghost" className="w-full justify-start text-white hover:bg-[#2f2f2f] h-11 px-3 cursor-pointer">
           <BookOpen className="w-4 h-4 mr-3" />
           Library
         </Button>
@@ -69,16 +70,16 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
         <ScrollArea className="h-full">
           <div className="space-y-1 pb-4">
             {items.map((c) => (
-              <Button
-                key={c.id}
-                variant="ghost"
-                className={`w-full justify-start text-left text-white hover:bg-[#2f2f2f] h-11 px-3 text-sm font-normal ${
-                  currentChat === c.id ? "bg-[#2f2f2f]" : ""
-                }`}
-                onClick={() => onChatSelect(c.id)}
-              >
-                <span className="truncate">{c.title}</span>
-              </Button>
+              <Link key={c.id} href={`/chat/${c.id}`} onClick={(e) => { e.preventDefault(); onChatSelect(c.id) }}>
+                <Button
+                  variant="ghost"
+                  className={`w-full justify-start text-left text-white hover:bg-[#2f2f2f] h-11 px-3 text-sm font-normal cursor-pointer ${
+                    currentChat === c.id ? "bg-[#2f2f2f]" : ""
+                  }`}
+                >
+                  <span className="truncate">{c.title}</span>
+                </Button>
+              </Link>
             ))}
           </div>
         </ScrollArea>

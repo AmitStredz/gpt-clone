@@ -15,6 +15,7 @@ export async function GET(_: Request, context: any) {
       role: m.role,
       content: m.content,
       createdAt: m.createdAt,
+      attachments: m.attachments || []
     }))
   })
 }

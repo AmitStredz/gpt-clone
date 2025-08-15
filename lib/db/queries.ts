@@ -1,6 +1,7 @@
 import { ObjectId, type Db } from 'mongodb'
 import { getDb } from './client'
 import type { ConversationDoc, MessageDoc } from './schema'
+import { Attachment } from '@/lib/types/chat'
 
 function conversations(db: Db) {
   return db.collection<ConversationDoc>('conversations')
@@ -38,7 +39,17 @@ export async function getConversation(userId: string, id: string) {
   return convo ?? null
 }
 
-export async function addMessage({ conversationId, role, content }: { conversationId: string; role: 'system' | 'user' | 'assistant'; content: string }) {
+export async function addMessage({ 
+  conversationId, 
+  role, 
+  content, 
+  attachments 
+}: { 
+  conversationId: string; 
+  role: 'system' | 'user' | 'assistant'; 
+  content: string;
+  attachments?: Attachment[]
+}) {
   const db = await getDb()
   const now = new Date()
   const convObjectId = new ObjectId(conversationId)
@@ -48,6 +59,7 @@ export async function addMessage({ conversationId, role, content }: { conversati
     conversationId: convObjectId,
     role,
     content,
+    attachments,
     createdAt: now,
     updatedAt: now,
   } as MessageDoc)
@@ -68,5 +80,21 @@ export async function listMessages(userId: string, conversationId: string) {
 export async function updateConversationTitle(conversationId: string, title: string) {
   const db = await getDb()
   await conversations(db).updateOne({ _id: new ObjectId(conversationId) }, { $set: { title, updatedAt: new Date() } })
+}
+
+export async function updateUserMessageAndPrune(options: { userId: string; conversationId: string; messageId: string; content: string }) {
+  const { userId, conversationId, messageId, content } = options
+  const db = await getDb()
+  const conv = await conversations(db).findOne({ _id: new ObjectId(conversationId), userId })
+  if (!conv) throw new Error('Conversation not found')
+  const msgId = new ObjectId(messageId)
+  const userMsg = await messages(db).findOne({ _id: msgId, conversationId: conv._id, role: 'user' })
+  if (!userMsg) throw new Error('User message not found')
+
+  const now = new Date()
+  await messages(db).updateOne({ _id: msgId }, { $set: { content, updatedAt: now } })
+  const delRes = await messages(db).deleteMany({ conversationId: conv._id, createdAt: { $gt: userMsg.createdAt } })
+  await conversations(db).updateOne({ _id: conv._id }, { $set: { updatedAt: now } })
+  return { pruned: delRes.deletedCount ?? 0 }
 }
 
