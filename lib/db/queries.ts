@@ -98,3 +98,19 @@ export async function updateUserMessageAndPrune(options: { userId: string; conve
   return { pruned: delRes.deletedCount ?? 0 }
 }
 
+export async function pruneAssistantMessageAndRegenerate(options: { userId: string; conversationId: string; messageId: string }) {
+  const { userId, conversationId, messageId } = options
+  const db = await getDb()
+  const conv = await conversations(db).findOne({ _id: new ObjectId(conversationId), userId })
+  if (!conv) throw new Error('Conversation not found')
+  const msgId = new ObjectId(messageId)
+  const assistantMsg = await messages(db).findOne({ _id: msgId, conversationId: conv._id, role: 'assistant' })
+  if (!assistantMsg) throw new Error('Assistant message not found')
+
+  const now = new Date()
+  // Delete the assistant message
+  await messages(db).deleteOne({ _id: msgId })
+  await conversations(db).updateOne({ _id: conv._id }, { $set: { updatedAt: now } })
+  return { pruned: 1 }
+}
+

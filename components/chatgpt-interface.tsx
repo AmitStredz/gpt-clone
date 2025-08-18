@@ -5,6 +5,7 @@ import { Sidebar } from "./sidebar"
 import { Header } from "./header"
 import { ChatArea } from "./chat-area"
 import { InputArea } from "./input-area"
+import { LoadingDots } from "./loading-dots"
 import { Chat as ReactChat, useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { useRouter } from 'next/navigation'
@@ -34,29 +35,116 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
   const [selectedModel, setSelectedModel] = useState<SupportedGoogleModel | undefined>(undefined)
 
   const handleRegenerateResponse = async (lastUserMessage: any) => {
-    // Remove the last assistant message
-    setMessages(prev => prev.slice(0, -1))
-    
-    // Send the last user message again
-    sendMessage({
-      role: 'user',
-      parts: lastUserMessage.parts || [{ type: 'text', text: lastUserMessage.content }],
-      attachments: lastUserMessage.attachments || [],
-      metadata: {
-        conversationId: currentChat ?? undefined,
-        attachments: lastUserMessage.attachments || [],
-        model: selectedModel
+    try {
+      if (!currentChat) return
+      
+      // Get the assistant message ID to delete
+      const messages = uiMessages.length ? uiMessages : hydratedMessages
+      const assistantMessage = messages[messages.length - 1]
+      if (!assistantMessage || assistantMessage.role !== 'assistant') return
+      
+      // Remove the last assistant message from UI
+      setMessages(prev => prev.slice(0, -1))
+      
+      // Delete the assistant message from database
+      await fetch(`/api/messages/${assistantMessage.id}?conversationId=${currentChat}`, {
+        method: 'DELETE'
+      })
+      
+      // Reload conversation from DB to get the pruned state
+      const res = await fetch(`/api/conversations/${currentChat}/messages`, { cache: 'no-store' })
+      if (res.ok) {
+        const data = await res.json()
+        const msgs = (data?.messages ?? []).map((m: any) => ({ 
+          id: m.id, 
+          role: m.role, 
+          parts: [{ type: 'text', text: m.content }],
+          attachments: m.attachments || []
+        }))
+        setHydratedMessages(msgs as any)
+        setMessages(msgs as any)
+        
+        // Now trigger regeneration by sending just the AI completion
+        const lastMessage = msgs[msgs.length - 1]
+        if (lastMessage && lastMessage.role === 'user') {
+          // Send the request to get AI response without adding another user message
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-conversation-id': currentChat
+            },
+            body: JSON.stringify({ 
+              messages: msgs.map((m: any) => ({
+                role: m.role,
+                content: m.content || (m.parts || [])
+                  .filter((p: any) => p.type === 'text')
+                  .map((p: any) => p.text)
+                  .join('\n'),
+                attachments: m.attachments || []
+              }))
+            })
+          })
+          
+          if (response.ok && response.body) {
+            const reader = response.body.getReader()
+            const decoder = new TextDecoder()
+            let assistantContent = ''
+            
+            // Add assistant message placeholder with loading animation
+            const assistantId = `assistant_${Date.now()}`
+            setMessages(prev => [...prev, { 
+              id: assistantId, 
+              role: 'assistant', 
+              isLoading: true,
+              parts: [{ 
+                type: 'text', 
+                text: 'Loading...',
+                component: LoadingDots
+              }] 
+            }])
+            
+            while (true) {
+              const { done, value } = await reader.read()
+              if (done) break
+              
+              const chunk = decoder.decode(value, { stream: true })
+              const lines = chunk.split('\n')
+              
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6)
+                  try {
+                    const event = JSON.parse(data)
+                    if (event.type === 'text-delta' && event.delta) {
+                      assistantContent += event.delta
+                      setMessages(prev => prev.map(m => 
+                        m.id === assistantId 
+                          ? { ...m, content: assistantContent, parts: [{ type: 'text', text: assistantContent }] }
+                          : m
+                      ))
+                    }
+                  } catch (e) {
+                    // ignore parse errors
+                  }
+                }
+              }
+            }
+          }
+        }
       }
-    } as any)
+    } catch (e) {
+      console.error('Failed to regenerate response:', e);
+    }
   }
 
   const handleNewChat = async () => {
     // Just clear local state and navigate to a clean chat UI.
-    setMessages([])
-    setHydratedMessages([])
-    setCurrentChat(null)
-    setAttachments([])
-    router.push(`/chat/new`)
+    setMessages([]);
+    setHydratedMessages([]);
+    setCurrentChat(null);
+    setAttachments([]);
+    router.push(`/chat/new`);
   }
 
   // Hydrate messages after switching chats. Keep inside component to access state.
@@ -110,7 +198,7 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
         // ignore
       }
     })()
-  }, [status, currentChat, router])
+  }, [status, currentChat, router]);
 
   return (
     <div className="flex h-screen max-h-screen bg-[#212121] text-white overflow-hidden">
@@ -190,12 +278,17 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
                       const decoder = new TextDecoder()
                       let assistantContent = ''
                       
-                      // Add assistant message placeholder
+                      // Add assistant message placeholder with loading
                       const assistantId = `assistant_${Date.now()}`
                       setMessages(prev => [...prev, { 
                         id: assistantId, 
                         role: 'assistant', 
-                        parts: [{ type: 'text', text: '' }] 
+                        isLoading: true,
+                        parts: [{ 
+                          type: 'text', 
+                          text: 'Loading...',
+                          component: LoadingDots
+                        }] 
                       }])
                       
                       while (true) {

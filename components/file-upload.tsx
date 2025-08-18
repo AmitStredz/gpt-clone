@@ -1,172 +1,201 @@
-"use client"
+"use client";
 
-import { useState, useRef } from 'react'
-import { Button } from '@/components/ui/button'
-import { Paperclip, X, FileText, Image as ImageIcon, FileSpreadsheet, File } from 'lucide-react'
-import { Attachment } from '@/lib/types/chat'
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Paperclip,
+  X,
+  FileText,
+  Image as ImageIcon,
+  FileSpreadsheet,
+  File,
+} from "lucide-react";
+import { Attachment } from "@/lib/types/chat";
 
 interface FileUploadProps {
-  onAttachmentsChange: (attachments: Attachment[]) => void
-  attachments: Attachment[]
-  disabled?: boolean
-  showPreview?: boolean
-  customButton?: React.ReactNode
+  onAttachmentsChange: (attachments: Attachment[]) => void;
+  attachments: Attachment[];
+  disabled?: boolean;
+  showPreview?: boolean;
+  customButton?: React.ReactNode;
 }
 
 const SUPPORTED_FILE_TYPES = {
-  'image/jpeg': { icon: ImageIcon, color: 'text-green-500' },
-  'image/png': { icon: ImageIcon, color: 'text-green-500' },
-  'image/gif': { icon: ImageIcon, color: 'text-green-500' },
-  'image/webp': { icon: ImageIcon, color: 'text-green-500' },
-  'application/pdf': { icon: FileText, color: 'text-red-500' },
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { icon: FileText, color: 'text-blue-500' },
-  'application/msword': { icon: FileText, color: 'text-blue-500' },
-  'text/plain': { icon: FileText, color: 'text-gray-500' },
-  'text/csv': { icon: FileSpreadsheet, color: 'text-green-600' },
-  'application/vnd.ms-excel': { icon: FileSpreadsheet, color: 'text-green-600' },
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': { icon: FileSpreadsheet, color: 'text-green-600' },
-}
+  "image/jpeg": { icon: ImageIcon, color: "text-green-500" },
+  "image/png": { icon: ImageIcon, color: "text-green-500" },
+  "image/gif": { icon: ImageIcon, color: "text-green-500" },
+  "image/webp": { icon: ImageIcon, color: "text-green-500" },
+  "application/pdf": { icon: FileText, color: "text-red-500" },
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+    icon: FileText,
+    color: "text-blue-500",
+  },
+  "application/msword": { icon: FileText, color: "text-blue-500" },
+  "text/plain": { icon: FileText, color: "text-gray-500" },
+  "text/csv": { icon: FileSpreadsheet, color: "text-green-600" },
+  "application/vnd.ms-excel": {
+    icon: FileSpreadsheet,
+    color: "text-green-600",
+  },
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+    icon: FileSpreadsheet,
+    color: "text-green-600",
+  },
+};
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
-const MAX_FILES = 10
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const MAX_FILES = 10;
 
-export function FileUpload({ onAttachmentsChange, attachments, disabled, showPreview = true, customButton }: FileUploadProps) {
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+export function FileUpload({
+  onAttachmentsChange,
+  attachments,
+  disabled,
+  showPreview = true,
+  customButton,
+}: FileUploadProps) {
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || [])
-    if (!files.length) return
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
 
     // Validate files
-    const validFiles = files.filter(file => {
+    const validFiles = files.filter((file) => {
       if (!Object.keys(SUPPORTED_FILE_TYPES).includes(file.type)) {
-        alert(`Unsupported file type: ${file.type}`)
-        return false
+        alert(`Unsupported file type: ${file.type}`);
+        return false;
       }
       if (file.size > MAX_FILE_SIZE) {
-        alert(`File too large: ${file.name} (max 50MB)`)
-        return false
+        alert(`File too large: ${file.name} (max 50MB)`);
+        return false;
       }
-      return true
-    })
+      return true;
+    });
 
     if (attachments.length + validFiles.length > MAX_FILES) {
-      alert(`Too many files. Maximum ${MAX_FILES} files allowed.`)
-      return
+      alert(`Too many files. Maximum ${MAX_FILES} files allowed.`);
+      return;
     }
 
-    setUploading(true)
+    setUploading(true);
+    console.log("uploading.......");
 
     try {
       // Get upload signature
-      const sigResponse = await fetch('/api/upload/signature', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ folder: 'chat-uploads' })
-      })
+      const sigResponse = await fetch("/api/upload/signature", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folder: "chat-uploads" }),
+      });
 
       if (!sigResponse.ok) {
-        throw new Error('Failed to get upload signature')
+        throw new Error("Failed to get upload signature");
       }
 
-      const { cloudName, apiKey, timestamp, folder, signature } = await sigResponse.json()
+      const { cloudName, apiKey, timestamp, folder, signature } =
+        await sigResponse.json();
 
       // Upload files to Cloudinary
-      const newAttachments: Attachment[] = []
+      const newAttachments: Attachment[] = [];
 
       for (const file of validFiles) {
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('api_key', apiKey)
-        formData.append('timestamp', timestamp.toString())
-        formData.append('folder', folder)
-        formData.append('signature', signature)
-        
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("api_key", apiKey);
+        formData.append("timestamp", timestamp.toString());
+        formData.append("folder", folder);
+        formData.append("signature", signature);
+
         // For raw files (non-images), use raw resource type
-        const resourceType = file.type.startsWith('image/') ? 'image' : 'raw'
-        
+        const resourceType = file.type.startsWith("image/") ? "image" : "raw";
+
         const uploadResponse = await fetch(
           `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
           {
-            method: 'POST',
-            body: formData
+            method: "POST",
+            body: formData,
           }
-        )
+        );
 
         if (!uploadResponse.ok) {
-          throw new Error(`Failed to upload ${file.name}`)
+          throw new Error(`Failed to upload ${file.name}`);
         }
 
-        const uploadResult = await uploadResponse.json()
+        const uploadResult = await uploadResponse.json();
 
         const attachment: Attachment = {
           id: uploadResult.public_id,
-          type: file.type.startsWith('image/') ? 'image' : 'file',
+          type: file.type.startsWith("image/") ? "image" : "file",
           mimeType: file.type,
           bytes: uploadResult.bytes,
           secureUrl: uploadResult.secure_url,
-          provider: 'cloudinary',
+          provider: "cloudinary",
           originalFileName: file.name,
           ...(uploadResult.width && { width: uploadResult.width }),
           ...(uploadResult.height && { height: uploadResult.height }),
-        }
+        };
 
         // For non-image files, also upload to Google File API for AI processing
-        if (!file.type.startsWith('image/')) {
+        if (!file.type.startsWith("image/")) {
           try {
-            const googleFormData = new FormData()
-            googleFormData.append('file', file)
-            
-            const googleUploadResponse = await fetch('/api/upload/gemini', {
-              method: 'POST',
-              body: googleFormData
-            })
-            
+            const googleFormData = new FormData();
+            googleFormData.append("file", file);
+
+            const googleUploadResponse = await fetch("/api/upload/gemini", {
+              method: "POST",
+              body: googleFormData,
+            });
+
             if (googleUploadResponse.ok) {
-              const googleResult = await googleUploadResponse.json()
-              attachment.googleFileUri = googleResult.file.uri
-              attachment.googleFileName = googleResult.file.name
+              const googleResult = await googleUploadResponse.json();
+              attachment.googleFileUri = googleResult.file.uri;
+              attachment.googleFileName = googleResult.file.name;
             } else {
-              console.warn('Google File API upload failed, file will be processed as description only')
+              console.warn(
+                "Google File API upload failed, file will be processed as description only"
+              );
             }
           } catch (error) {
-            console.warn('Google File API upload error:', error)
+            console.warn("Google File API upload error:", error);
           }
         }
 
-        newAttachments.push(attachment)
+        newAttachments.push(attachment);
       }
 
-      onAttachmentsChange([...attachments, ...newAttachments])
+      onAttachmentsChange([...attachments, ...newAttachments]);
     } catch (error) {
-      console.error('Upload failed:', error)
-      alert('Failed to upload files. Please try again.')
+      console.error("Upload failed:", error);
+      alert("Failed to upload files. Please try again.");
     } finally {
-      setUploading(false)
+      setUploading(false);
       // Reset file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = ''
+        fileInputRef.current.value = "";
       }
     }
-  }
+  };
 
   const removeAttachment = (attachmentId: string) => {
-    onAttachmentsChange(attachments.filter(a => a.id !== attachmentId))
-  }
+    onAttachmentsChange(attachments.filter((a) => a.id !== attachmentId));
+  };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-  }
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
 
   const getFileIcon = (mimeType: string) => {
-    const fileType = SUPPORTED_FILE_TYPES[mimeType as keyof typeof SUPPORTED_FILE_TYPES]
-    return fileType || { icon: File, color: 'text-gray-500' }
-  }
+    const fileType =
+      SUPPORTED_FILE_TYPES[mimeType as keyof typeof SUPPORTED_FILE_TYPES];
+    return fileType || { icon: File, color: "text-gray-500" };
+  };
 
   return (
     <div className="space-y-2">
@@ -175,7 +204,7 @@ export function FileUpload({ onAttachmentsChange, attachments, disabled, showPre
         ref={fileInputRef}
         type="file"
         multiple
-        accept={Object.keys(SUPPORTED_FILE_TYPES).join(',')}
+        accept={Object.keys(SUPPORTED_FILE_TYPES).join(",")}
         onChange={handleFileSelect}
         className="hidden"
         disabled={disabled || uploading}
@@ -183,9 +212,7 @@ export function FileUpload({ onAttachmentsChange, attachments, disabled, showPre
 
       {/* Upload Button */}
       {customButton ? (
-        <div onClick={() => fileInputRef.current?.click()}>
-          {customButton}
-        </div>
+        <div onClick={() => fileInputRef.current?.click()}>{customButton}</div>
       ) : (
         <Button
           type="button"
@@ -196,18 +223,22 @@ export function FileUpload({ onAttachmentsChange, attachments, disabled, showPre
           className="cursor-pointer"
         >
           <Paperclip className="h-4 w-4" />
-          {uploading ? 'Uploading...' : 'Attach'}
+          {uploading ? "Uploading..." : "Attach"}
         </Button>
       )}
 
       {/* File Preview Cards - similar to ChatGPT style */}
-      {showPreview && (attachments.length > 0 || uploading) && (
+      {showPreview && attachments.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {attachments.map((attachment) => {
-            const { icon: Icon, color } = getFileIcon(attachment.mimeType)
-            const fileName = attachment.originalFileName || attachment.id.split('/').pop() || 'file'
-            const fileExtension = attachment.mimeType.split('/')[1]?.toUpperCase() || 'FILE'
-            
+            const { icon: Icon, color } = getFileIcon(attachment.mimeType);
+            const fileName =
+              attachment.originalFileName ||
+              attachment.id.split("/").pop() ||
+              "file";
+            const fileExtension =
+              attachment.mimeType.split("/")[1]?.toUpperCase() || "FILE";
+
             return (
               <div
                 key={attachment.id}
@@ -215,7 +246,7 @@ export function FileUpload({ onAttachmentsChange, attachments, disabled, showPre
               >
                 {/* File icon or image thumbnail */}
                 <div className="flex-shrink-0">
-                  {attachment.type === 'image' ? (
+                  {attachment.type === "image" ? (
                     <img
                       src={attachment.secureUrl}
                       alt="Uploaded"
@@ -227,7 +258,7 @@ export function FileUpload({ onAttachmentsChange, attachments, disabled, showPre
                     </div>
                   )}
                 </div>
-                
+
                 {/* File info */}
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
@@ -235,10 +266,11 @@ export function FileUpload({ onAttachmentsChange, attachments, disabled, showPre
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
                     {fileExtension}
-                    {attachment.bytes && ` • ${formatFileSize(attachment.bytes)}`}
+                    {attachment.bytes &&
+                      ` • ${formatFileSize(attachment.bytes)}`}
                   </div>
                 </div>
-                
+
                 {/* Remove button - shows on hover */}
                 <Button
                   type="button"
@@ -251,29 +283,31 @@ export function FileUpload({ onAttachmentsChange, attachments, disabled, showPre
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-            )
+            );
           })}
-          
-          {/* Loading indicator for uploading files */}
-          {uploading && (
-            <div className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 min-w-[200px]">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center relative">
-                <FileText className="h-6 w-6 text-blue-500" />
-                {/* Loading circle overlay */}
-                <div className="absolute inset-0 rounded-lg border-2 border-transparent border-t-blue-500 animate-spin"></div>
+        </div>
+      )}
+
+      {/* Loading indicator for uploading files - separate from attachments */}
+      {uploading && (
+        <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 min-w-[200px]">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center relative">
+              <FileText className="h-6 w-6 text-blue-500" />
+              {/* Loading circle overlay */}
+              <div className="absolute inset-0 rounded-lg border-2 border-transparent border-t-blue-500 animate-spin"></div>
+            </div>
+            <div className="flex-1">
+              <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                Uploading...
               </div>
-              <div className="flex-1">
-                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                  Uploading...
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  Processing file
-                </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Processing file
               </div>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -4,6 +4,12 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Font weights for sidebar */
+  --font-weight-sidebar-nav: 400;
+  --font-weight-sidebar-chat: 400;
+  --font-weight-sidebar-label: 500;
+  --font-weight-sidebar-user: 400;
+  
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -123,4 +129,29 @@
   button, a, [role="button"], .cursor-pointer {
     cursor: pointer;
   }
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-pulse-dot-1 {
+  animation: pulse-dot 1.4s infinite;
+}
+
+.animate-pulse-dot-2 {
+  animation: pulse-dot 1.4s infinite;
+  animation-delay: 0.2s;
+}
+
+.animate-pulse-dot-3 {
+  animation: pulse-dot 1.4s infinite;
+  animation-delay: 0.4s;
 }

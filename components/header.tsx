@@ -13,9 +13,9 @@ export function Header({ onToggleSidebar }: HeaderProps) {
   return (
     <div className="h-14 border-b border-[#2f2f2f] flex items-center justify-between px-4">
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="sm" className="text-white hover:bg-[#2f2f2f] p-2" onClick={onToggleSidebar}>
+        {/* <Button variant="ghost" size="sm" className="text-white hover:bg-[#2f2f2f] p-2" onClick={onToggleSidebar}>
           <PanelLeft className="w-4 h-4" />
-        </Button>
+        </Button> */}
 
         <Button variant="ghost" className="text-white hover:bg-[#2f2f2f] h-8 px-3 text-sm font-medium cursor-pointer">
           ChatGPT
