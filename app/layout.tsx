@@ -6,9 +6,12 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "v0 App",
+  title: "ChatGPT",
   description: "Created with v0",
   generator: "v0.dev",
+  icons: {
+    icon: "/gpt-logo.svg",
+  }
 };
 
 export default function RootLayout({

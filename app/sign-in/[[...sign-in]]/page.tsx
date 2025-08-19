@@ -18,8 +18,25 @@ export default function Page() {
     try {
       setSubmitting(true)
       setError(null)
-      await signIn.create({ identifier: email })
-      await signIn.prepareFirstFactor({ strategy: "email_code" })
+      const result = await signIn.create({ identifier: email })
+      
+      if (!result.supportedFirstFactors) {
+        throw new Error('No authentication factors available')
+      }
+      
+      const emailFactor = result.supportedFirstFactors.find(
+        factor => factor.strategy === 'email_code'
+      ) as { emailAddressId: string }
+
+      if (!emailFactor) {
+        throw new Error('Email authentication not supported')
+      }
+
+      await signIn.prepareFirstFactor({
+        strategy: "email_code",
+        emailAddressId: emailFactor.emailAddressId
+      })
+      
       router.push(`/sign-in/verify?email=${encodeURIComponent(email)}`)
     } catch (err: any) {
       setError(err?.errors?.[0]?.message || "Unable to continue with email")

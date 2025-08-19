@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useSignIn } from "@clerk/nextjs"
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const params = useSearchParams()
   const email = params.get("email") || ""
   const router = useRouter()
@@ -62,4 +62,15 @@ export default function VerifyEmailPage() {
   )
 }
 
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-pulse">Loading...</div>
+      </div>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
+  )
+}
 
