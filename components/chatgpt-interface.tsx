@@ -11,6 +11,7 @@ import { DefaultChatTransport } from "ai"
 import { useRouter } from 'next/navigation'
 import { Attachment } from "@/lib/types/chat"
 import { SupportedGoogleModel } from "@/lib/ai/provider"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export function ChatGPTInterface({ chatId }: { chatId?: string }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -19,6 +20,7 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
   const router = useRouter()
   const hasAutoRedirectedRef = useRef(false)
   const pendingCreationRef = useRef(false)
+  const isMobile = useIsMobile()
 
   const chatInstance = useMemo(() => {
     const headers = currentChat ? { 'x-conversation-id': currentChat } : undefined
@@ -199,6 +201,13 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
       }
     })()
   }, [status, currentChat, router]);
+
+  // Ensure sidebar is closed by default on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false)
+    }
+  }, [isMobile])
 
   return (
     <div className="flex h-screen max-h-screen bg-[#212121] text-white overflow-hidden">

@@ -54,6 +54,7 @@ export function FileUpload({
   customButton,
 }: FileUploadProps) {
   const [uploading, setUploading] = useState(false);
+  const [pendingUploads, setPendingUploads] = useState<Array<{ id: string; file: File; progress: number }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (
@@ -98,75 +99,87 @@ export function FileUpload({
       const { cloudName, apiKey, timestamp, folder, signature } =
         await sigResponse.json();
 
-      // Upload files to Cloudinary
-      const newAttachments: Attachment[] = [];
+      // Helper to upload a single file with progress using XMLHttpRequest
+      const uploadSingleWithProgress = (file: File): Promise<Attachment> => {
+        return new Promise((resolve, reject) => {
+          const tempId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+          setPendingUploads(prev => [...prev, { id: tempId, file, progress: 0 }]);
 
-      for (const file of validFiles) {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("api_key", apiKey);
-        formData.append("timestamp", timestamp.toString());
-        formData.append("folder", folder);
-        formData.append("signature", signature);
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("api_key", apiKey);
+          formData.append("timestamp", timestamp.toString());
+          formData.append("folder", folder);
+          formData.append("signature", signature);
 
-        // For raw files (non-images), use raw resource type
-        const resourceType = file.type.startsWith("image/") ? "image" : "raw";
+          const resourceType = file.type.startsWith("image/") ? "image" : "raw";
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`);
 
-        const uploadResponse = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-
-        if (!uploadResponse.ok) {
-          throw new Error(`Failed to upload ${file.name}`);
-        }
-
-        const uploadResult = await uploadResponse.json();
-
-        const attachment: Attachment = {
-          id: uploadResult.public_id,
-          type: file.type.startsWith("image/") ? "image" : "file",
-          mimeType: file.type,
-          bytes: uploadResult.bytes,
-          secureUrl: uploadResult.secure_url,
-          provider: "cloudinary",
-          originalFileName: file.name,
-          ...(uploadResult.width && { width: uploadResult.width }),
-          ...(uploadResult.height && { height: uploadResult.height }),
-        };
-
-        // For non-image files, also upload to Google File API for AI processing
-        if (!file.type.startsWith("image/")) {
-          try {
-            const googleFormData = new FormData();
-            googleFormData.append("file", file);
-
-            const googleUploadResponse = await fetch("/api/upload/gemini", {
-              method: "POST",
-              body: googleFormData,
-            });
-
-            if (googleUploadResponse.ok) {
-              const googleResult = await googleUploadResponse.json();
-              attachment.googleFileUri = googleResult.file.uri;
-              attachment.googleFileName = googleResult.file.name;
-            } else {
-              console.warn(
-                "Google File API upload failed, file will be processed as description only"
-              );
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              const pct = Math.round((e.loaded / e.total) * 100);
+              setPendingUploads(prev => prev.map(p => p.id === tempId ? { ...p, progress: pct } : p));
             }
-          } catch (error) {
-            console.warn("Google File API upload error:", error);
-          }
-        }
+          };
 
-        newAttachments.push(attachment);
+          xhr.onerror = () => {
+            setPendingUploads(prev => prev.filter(p => p.id !== tempId));
+            reject(new Error(`Failed to upload ${file.name}`));
+          };
+
+          xhr.onload = async () => {
+            try {
+              if (xhr.status < 200 || xhr.status >= 300) {
+                setPendingUploads(prev => prev.filter(p => p.id !== tempId));
+                return reject(new Error(`Failed to upload ${file.name}`));
+              }
+              const uploadResult = JSON.parse(xhr.responseText);
+              const attachment: Attachment = {
+                id: uploadResult.public_id,
+                type: file.type.startsWith("image/") ? "image" : "file",
+                mimeType: file.type,
+                bytes: uploadResult.bytes,
+                secureUrl: uploadResult.secure_url,
+                provider: "cloudinary",
+                originalFileName: file.name,
+                ...(uploadResult.width && { width: uploadResult.width }),
+                ...(uploadResult.height && { height: uploadResult.height }),
+              };
+
+              // Optional: Upload to Google File API for non-images
+              if (!file.type.startsWith("image/")) {
+                try {
+                  const googleFormData = new FormData();
+                  googleFormData.append("file", file);
+                  const googleUploadResponse = await fetch("/api/upload/gemini", { method: "POST", body: googleFormData });
+                  if (googleUploadResponse.ok) {
+                    const googleResult = await googleUploadResponse.json();
+                    (attachment as any).googleFileUri = googleResult.file.uri;
+                    (attachment as any).googleFileName = googleResult.file.name;
+                  }
+                } catch {}
+              }
+
+              setPendingUploads(prev => prev.filter(p => p.id !== tempId));
+              resolve(attachment);
+            } catch (err) {
+              setPendingUploads(prev => prev.filter(p => p.id !== tempId));
+              reject(err);
+            }
+          };
+
+          xhr.send(formData);
+        });
+      };
+
+      const uploaded: Attachment[] = [];
+      for (const file of validFiles) {
+        // Sequential to keep UI simple and prevent rate limiting
+        const att = await uploadSingleWithProgress(file);
+        uploaded.push(att);
       }
-
-      onAttachmentsChange([...attachments, ...newAttachments]);
+      onAttachmentsChange([...attachments, ...uploaded]);
     } catch (error) {
       console.error("Upload failed:", error);
       alert("Failed to upload files. Please try again.");
@@ -195,6 +208,42 @@ export function FileUpload({
     const fileType =
       SUPPORTED_FILE_TYPES[mimeType as keyof typeof SUPPORTED_FILE_TYPES];
     return fileType || { icon: File, color: "text-gray-500" };
+  };
+
+  const ProgressRing = ({ progress }: { progress: number }) => {
+    const size = 40; // px
+    const stroke = 4; // px
+    const radius = (size - stroke) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference * (1 - progress / 100);
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="absolute inset-0"
+      >
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="rgba(255,255,255,0.25)"
+          strokeWidth={stroke}
+          fill="none"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#60a5fa"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+        />
+      </svg>
+    );
   };
 
   return (
@@ -288,24 +337,42 @@ export function FileUpload({
         </div>
       )}
 
-      {/* Loading indicator for uploading files - separate from attachments */}
-      {uploading && (
+      {/* Pending uploads with circular progress inside file icon */}
+      {pendingUploads.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          <div className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 min-w-[200px]">
-            <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center relative">
-              <FileText className="h-6 w-6 text-blue-500" />
-              {/* Loading circle overlay */}
-              <div className="absolute inset-0 rounded-lg border-2 border-transparent border-t-blue-500 animate-spin"></div>
-            </div>
-            <div className="flex-1">
-              <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                Uploading...
+          {pendingUploads.map((p) => {
+            const file = p.file;
+            const isImage = file.type.startsWith("image/");
+            const { icon: Icon, color } = getFileIcon(file.type);
+            return (
+              <div key={p.id} className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 min-w-[200px] max-w-[300px]">
+                <div className="relative w-10 h-10 flex items-center justify-center">
+                  <div className="absolute inset-0">
+                    <ProgressRing progress={p.progress} />
+                  </div>
+                  <div className="relative w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                    {isImage ? (
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt="preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Icon className={`h-5 w-5 ${color}`} />
+                    )}
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                    {file.name}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {Math.max(0, Math.min(100, p.progress))}%
+                  </div>
+                </div>
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                Processing file
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
       )}
     </div>

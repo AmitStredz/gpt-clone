@@ -92,7 +92,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
   return (
     <div className="flex-1 min-h-0 bg-[#212121]">
       <ScrollArea className="h-full" ref={scrollAreaRef}>
-        <div className="max-w-5xl mx-auto w-full px-30 py-6">
+        <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           {messages.map((message, index) => {
             const isUser = message.role === 'user'
             return (
