@@ -38,105 +38,90 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
 
   const handleRegenerateResponse = async (lastUserMessage: any) => {
     try {
-      if (!currentChat) return
-      
-      // Get the assistant message ID to delete
-      const messages = uiMessages.length ? uiMessages : hydratedMessages
-      const assistantMessage = messages[messages.length - 1]
-      if (!assistantMessage || assistantMessage.role !== 'assistant') return
-      
-      // Remove the last assistant message from UI
-      setMessages(prev => prev.slice(0, -1))
-      
-      // Delete the assistant message from database
-      await fetch(`/api/messages/${assistantMessage.id}?conversationId=${currentChat}`, {
-        method: 'DELETE'
+      if (!currentChat || !lastUserMessage?.id) return
+
+      // 1) Prune all messages after the selected user message in the DB
+      // Reuse the edit endpoint behavior by patching the same content
+      await fetch(`/api/messages/${lastUserMessage.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId: currentChat, content: lastUserMessage.content })
       })
-      
-      // Reload conversation from DB to get the pruned state
+
+      // 2) Reload pruned conversation from DB
       const res = await fetch(`/api/conversations/${currentChat}/messages`, { cache: 'no-store' })
-      if (res.ok) {
-        const data = await res.json()
-        const msgs = (data?.messages ?? []).map((m: any) => ({ 
-          id: m.id, 
-          role: m.role, 
-          parts: [{ type: 'text', text: m.content }],
-          attachments: m.attachments || []
-        }))
-        setHydratedMessages(msgs as any)
-        setMessages(msgs as any)
-        
-        // Now trigger regeneration by sending just the AI completion
-        const lastMessage = msgs[msgs.length - 1]
-        if (lastMessage && lastMessage.role === 'user') {
-          // Send the request to get AI response without adding another user message
-          const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'x-conversation-id': currentChat
-            },
-            body: JSON.stringify({ 
-              messages: msgs.map((m: any) => ({
-                role: m.role,
-                content: m.content || (m.parts || [])
-                  .filter((p: any) => p.type === 'text')
-                  .map((p: any) => p.text)
-                  .join('\n'),
-                attachments: m.attachments || []
-              }))
-            })
-          })
-          
-          if (response.ok && response.body) {
-            const reader = response.body.getReader()
-            const decoder = new TextDecoder()
-            let assistantContent = ''
-            
-            // Add assistant message placeholder with loading animation
-            const assistantId = `assistant_${Date.now()}`
-            setMessages(prev => [...prev, { 
-              id: assistantId, 
-              role: 'assistant', 
-              isLoading: true,
-              parts: [{ 
-                type: 'text', 
-                text: 'Loading...',
-                component: LoadingDots
-              }] 
-            }])
-            
-            while (true) {
-              const { done, value } = await reader.read()
-              if (done) break
-              
-              const chunk = decoder.decode(value, { stream: true })
-              const lines = chunk.split('\n')
-              
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  const data = line.slice(6)
-                  try {
-                    const event = JSON.parse(data)
-                    if (event.type === 'text-delta' && event.delta) {
-                      assistantContent += event.delta
-                      setMessages(prev => prev.map(m => 
-                        m.id === assistantId 
-                          ? { ...m, content: assistantContent, parts: [{ type: 'text', text: assistantContent }] }
-                          : m
-                      ))
-                    }
-                  } catch (e) {
-                    // ignore parse errors
-                  }
-                }
-              }
+      if (!res.ok) return
+      const data = await res.json()
+      const msgs = (data?.messages ?? []).map((m: any) => ({
+        id: m.id,
+        role: m.role,
+        parts: [{ type: 'text', text: m.content }],
+        attachments: m.attachments || []
+      }))
+      setHydratedMessages(msgs as any)
+      setMessages(msgs as any)
+
+      // 3) Trigger regeneration (assistant completion) using the pruned context
+      const lastMessage = msgs[msgs.length - 1]
+      if (!lastMessage || lastMessage.role !== 'user') return
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-conversation-id': currentChat
+        },
+        body: JSON.stringify({
+          messages: msgs.map((m: any) => ({
+            role: m.role,
+            content: (m.parts || [])
+              .filter((p: any) => p.type === 'text')
+              .map((p: any) => p.text)
+              .join('\n'),
+            attachments: m.attachments || []
+          }))
+        })
+      })
+
+      if (!response.ok || !response.body) return
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let assistantContent = ''
+
+      // Add assistant message placeholder with loading animation
+      const assistantId = `assistant_${Date.now()}`
+      setMessages(prev => [...prev, {
+        id: assistantId,
+        role: 'assistant',
+        isLoading: true,
+        parts: [{ type: 'text', text: 'Loading...', component: LoadingDots }]
+      }])
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        const lines = chunk.split('\n')
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          const json = line.slice(6)
+          try {
+            const event = JSON.parse(json)
+            if (event.type === 'text-delta' && event.delta) {
+              assistantContent += event.delta
+              setMessages(prev => prev.map(m =>
+                m.id === assistantId
+                  ? { ...m, parts: [{ type: 'text', text: assistantContent }] }
+                  : m
+              ))
             }
-          }
+          } catch {}
         }
       }
     } catch (e) {
-      console.error('Failed to regenerate response:', e);
+      console.error('Failed to regenerate response:', e)
     }
   }
 
