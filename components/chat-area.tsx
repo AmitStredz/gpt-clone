@@ -92,9 +92,11 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
   return (
     <div className="flex-1 min-h-0 bg-[#212121]">
       <ScrollArea className="h-full" ref={scrollAreaRef}>
-        <div className="max-w-5xl mx-auto w-full px-30 py-6">
+        <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           {messages.map((message, index) => {
             const isUser = message.role === 'user'
+            const isLast = index === messages.length - 1
+            const hasContent = Boolean((message.content || '').trim().length)
             return (
             <div key={message.id} className={`mb-6 flex ${isUser ? 'justify-end' : 'justify-start'} group`}>
               {/* <div className={`${isUser ? 'max-w-[85%]' : 'max-w-[95%]'}`}> */}
@@ -171,7 +173,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                       {/* Text content with background only for user messages */}
                       <div className="flex items-center w-full justify-start h-full">
                         <div className={`prose prose-invert max-w-none ${isUser ? 'bg-white/10 rounded-3xl px-4 py-2' : ''}`}>
-                          {isStreaming && !isUser && index === messages.length - 1 ? (
+                          {(!isUser && isLast && isStreaming && !hasContent) ? (
                             <div className="flex items-center gap-4 min-h-[24px] p-2">
                               <LoadingDots />
                               <span className="text-gray-400 text-sm">AI is typing...</span>

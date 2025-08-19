@@ -2,10 +2,13 @@
 
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { PanelLeft, PenSquare, Search, BookOpen, Sparkles, Users } from "lucide-react"
+import { PanelLeft, PenSquare, Search, BookOpen, Sparkles, Users, MoreHorizontal, PencilLine, Trash2 } from "lucide-react"
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs"
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { useIsMobile } from "@/hooks/use-mobile"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface SidebarProps {
   isOpen: boolean
@@ -20,6 +23,7 @@ type ConversationItem = { id: string; title: string }
 export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat }: SidebarProps) {
   const [items, setItems] = useState<ConversationItem[]>([])
   const [isHovered, setIsHovered] = useState(false)
+  const isMobile = useIsMobile()
 
   const loadConversations = () => {
     if (isOpen) {
@@ -31,7 +35,7 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
   }
   useEffect(() => { loadConversations() }, [isOpen, currentChat])
 
-  return (
+  const content = (
     <div
       className={`${isOpen ? 'w-[260px]' : 'w-[72px]'} bg-[#171717] border-r border-[#3e3e3fcd] flex flex-col h-full transition-all duration-200`}
       onMouseEnter={() => !isOpen && setIsHovered(true)}
@@ -121,16 +125,71 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
             <ScrollArea className="h-full">
               <div className="space-y-1 pb-4">
                 {items.map((c) => (
-                  <Link key={c.id} href={`/chat/${c.id}`} onClick={(e) => { e.preventDefault(); onChatSelect(c.id) }}>
-                    <Button
-                      variant="ghost"
-                      className={`w-full text-[14px] text-white hover:bg-[#2A2A2A] h-10 px-3 cursor-pointer rounded-lg justify-start [font-weight:var(--font-weight-sidebar-chat)] ${
-                        currentChat === c.id ? "bg-[#2A2A2A]" : ""
-                      }`}
-                    >
-                      <span className="truncate">{c.title}</span>
-                    </Button>
-                  </Link>
+                  <div key={c.id} className="group flex items-center">
+                    <Link href={`/chat/${c.id}`} className="flex-1" onClick={(e) => { e.preventDefault(); onChatSelect(c.id); if (isMobile && isOpen) onToggle() }}>
+                      <Button
+                        variant="ghost"
+                        className={`w-full text-[14px] text-white hover:bg-[#2A2A2A] h-10 px-3 cursor-pointer rounded-lg justify-start [font-weight:var(--font-weight-sidebar-chat)] ${
+                          currentChat === c.id ? "bg-[#2A2A2A]" : ""
+                        }`}
+                      >
+                        <span className="truncate">{c.title}</span>
+                      </Button>
+                    </Link>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 p-2 cursor-pointer"
+                          aria-label="Conversation actions"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            const next = prompt('Rename chat', c.title)
+                            if (next == null) return
+                            const title = next.trim()
+                            if (!title) return
+                            try {
+                              const res = await fetch(`/api/conversations/${c.id}`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ title })
+                              })
+                              if (res.ok) {
+                                setItems(prev => prev.map(it => it.id === c.id ? { ...it, title } : it))
+                              }
+                            } catch {}
+                          }}
+                        >
+                          <PencilLine className="w-4 h-4" /> Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={async () => {
+                            if (!confirm('Delete this chat? This cannot be undone.')) return
+                            try {
+                              const res = await fetch(`/api/conversations/${c.id}`, { method: 'DELETE' })
+                              if (res.ok) {
+                                setItems(prev => prev.filter(it => it.id !== c.id))
+                                if (currentChat === c.id) {
+                                  onNewChat()
+                                }
+                                // Soft refresh list
+                                fetch('/api/conversations').catch(() => {})
+                              }
+                            } catch {}
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 ))}
               </div>
             </ScrollArea>
@@ -160,4 +219,20 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
       )}
     </div>
   )
+
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={(open) => { if (open !== isOpen) onToggle() }}>
+        <SheetContent side="left" className="w-[260px] p-0 bg-[#171717] text-white [&>button]:hidden">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Sidebar</SheetTitle>
+            <SheetDescription>Mobile navigation sidebar</SheetDescription>
+          </SheetHeader>
+          {content}
+        </SheetContent>
+      </Sheet>
+    )
+  }
+
+  return content
 }

@@ -114,3 +114,12 @@ export async function pruneAssistantMessageAndRegenerate(options: { userId: stri
   return { pruned: 1 }
 }
 
+export async function deleteConversationForUser(userId: string, conversationId: string) {
+  const db = await getDb()
+  const conv = await conversations(db).findOne({ _id: new ObjectId(conversationId), userId })
+  if (!conv) throw new Error('Conversation not found')
+  await messages(db).deleteMany({ conversationId: conv._id })
+  await conversations(db).deleteOne({ _id: conv._id })
+  return { ok: true }
+}
+
