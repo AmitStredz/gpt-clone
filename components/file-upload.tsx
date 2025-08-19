@@ -241,6 +241,7 @@ export function FileUpload({
           fill="none"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
+          style={{ transition: 'stroke-dashoffset 150ms linear' }}
         />
       </svg>
     );
@@ -360,6 +361,8 @@ export function FileUpload({
                     ) : (
                       <Icon className={`h-5 w-5 ${color}`} />
                     )}
+                    {/* soft inner overlay to indicate uploading */}
+                    <div className="absolute inset-0 bg-black/10 dark:bg-white/5" />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
