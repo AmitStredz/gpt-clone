@@ -92,13 +92,13 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
   return (
     <div className="flex-1 min-h-0 bg-[#212121]">
       <ScrollArea className="h-full w-full" ref={scrollAreaRef}>
-        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+        <div className="w-screen max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
           {messages.map((message, index) => {
             const isUser = message.role === 'user'
             const isLast = index === messages.length - 1
             const hasContent = Boolean((message.content || '').trim().length)
             return (
-            <div key={message.id} className={`mb-6 flex ${isUser ? 'justify-end' : 'justify-start'} w-full group`}>
+            <div key={message.id} className={`mb-6 flex flex-wrap ${isUser ? 'justify-end' : 'justify-start'} group`}>
               <div className={`${isUser ? 'max-w-[85%]' : 'max-w-[95%]'} min-w-0`}>
                 <div className="w-full"> 
                   {editingId === message.id && isUser ? (
@@ -170,8 +170,8 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                       )}
                       
                       {/* Text content with background only for user messages */}
-                      <div className="flex items-start w-full">
-                        <div className={`prose prose-invert w-full break-words ${isUser ? 'bg-white/10 rounded-3xl px-4 py-2' : ''}`}>
+                      <div className={`flex items-start w-full ${isUser ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`prose prose-invert break-words ${isUser ? 'bg-white/10 rounded-3xl px-4 py-2' : ''}`}>
                           {(!isUser && isLast && isStreaming && !hasContent) ? (
                             <div className="flex items-center gap-4 min-h-[24px] p-2">
                               <LoadingDots />
@@ -197,7 +197,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                                 const codeId = `code-${Math.random().toString(36).substr(2, 9)}`
                                 
                                 return (
-                                  <div className="my-4 bg-black/30 rounded-lg overflow-hidden">
+                                  <div className="my-4 bg-black/30 rounded-lg overflow-hidden flex justify-end">
                                     {/* Header with language and buttons */}
                                     <div className="flex items-center justify-between px-4 py-3">
                                       <span className="text-white text-xs font-sans">{languageDisplay.toLowerCase()}</span>
@@ -229,7 +229,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                                       </div>
                                     </div>
                                     {/* Code content */}
-                                    <pre className="p-4 overflow-x-auto text-sm text-gray-200 leading-relaxed font-sans">
+                                    <pre className="p-4 overflow-x-auto text-sm text-gray-200 flex justify-end leading-relaxed font-sans">
                                       <code className="font-sans">{children}</code>
                                     </pre>
                                   </div>
