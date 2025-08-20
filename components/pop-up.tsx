@@ -38,7 +38,7 @@ export default function PopUp({
   }, [showPopup, setShowPopup]);
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-[#2f2f2f]">
+    <div className="flex max-h-screen w-screen items-center justify-center bg-[#2f2f2f]">
       {showPopup && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
           <div

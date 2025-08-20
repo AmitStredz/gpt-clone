@@ -37,7 +37,7 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
 
   const content = (
     <div
-      className={`${isOpen ? 'w-[260px]' : 'w-[72px]'} bg-[#171717] border-r border-[#3e3e3fcd] flex flex-col h-full transition-all duration-200`}
+      className={`${isOpen ? 'w-[260px] bg-[#171717]' : 'w-[72px]'}  border-r border-[#3e3e3fcd] flex flex-col h-full transition-all duration-200`}
       onMouseEnter={() => !isOpen && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -147,8 +147,9 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
+                      <DropdownMenuContent align="start" className="w-40 bg-[#2f2f2f]">
                         <DropdownMenuItem
+                          className="cursor-pointer"
                           onClick={async () => {
                             const next = prompt('Rename chat', c.title)
                             if (next == null) return
@@ -169,7 +170,8 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
                           <PencilLine className="w-4 h-4" /> Rename
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          variant="destructive"
+                          className="text-red-400 cursor-pointer"
+                          // variant="destructive"
                           onClick={async () => {
                             if (!confirm('Delete this chat? This cannot be undone.')) return
                             try {
@@ -185,7 +187,7 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
                             } catch {}
                           }}
                         >
-                          <Trash2 className="w-4 h-4" /> Delete
+                          <Trash2 className="w-4 h-4 text-red-400 cursor-pointer" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

@@ -180,15 +180,15 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                             </div>
                           ) : (
                             <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-                              a: (props) => <a {...props} className="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer" />,
-                              p: (props) => <p {...props} className={`leading-7 text-[15px] ${isUser ? 'text-right' : 'text-gray-300'}`} />,
+                              a: (props) => <a {...props} className="text-blue-400 text-[13px] sm:text-[15px] hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer" />,
+                              p: (props) => <p {...props} className={`leading-7 text-[13px] sm:text-[15px] ${isUser ? 'text-left max-w-[250px] sm:max-w-[500px] p-1' : 'text-gray-200'}`} />,
                               code: (props) => {
                                 const { children, className } = props as any
                                 const isInline = !className || !/\blanguage-/.test(className)
                                 
                                 if (isInline) {
                                   return (
-                                    <code className="px-1.5 py-0.5 rounded bg-gray-700/50 text-red-300 font-mono text-sm">{children}</code>
+                                    <code className="px-1.5 py-0.5 rounded bg-white/10 font-mono text-sm">{children}</code>
                                   )
                                 }
                                 
@@ -230,8 +230,8 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                                       </div>
                                     </div>
                                     {/* Code content */}
-                                    <pre className="p-4 overflow-x-auto text-sm text-gray-200 leading-relaxed" style={{ fontFamily: 'SF Mono, Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace' }}>
-                                      <code>{children}</code>
+                                    <pre className="p-4 overflow-x-auto text-sm text-gray-200 leading-relaxed font-sans">
+                                      <code className="font-sans">{children}</code>
                                     </pre>
                                   </div>
                                 )
@@ -250,7 +250,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                               strong: (props) => <strong {...props} className="font-semibold text-white" />,
                               ul: (props) => <ul {...props} className="list-disc pl-6 mb-6 space-y-3 text-gray-300" />,
                               ol: (props) => <ol {...props} className="list-decimal pl-6 mb-6 space-y-3 text-gray-300" />,
-                              li: (props) => <li {...props} className="leading-7 mb-2" />,
+                              li: (props) => <li {...props} className="text-[13px] sm:text-[15px] leading-7 mb-2" />,
                               blockquote: (props) => <blockquote {...props} className="border-l-4 border-gray-500 pl-6 my-6 italic text-gray-300 bg-gray-800/30 py-4 pr-4 rounded-r-lg" />,
                               table: (props) => <div className="overflow-x-auto my-4"><table {...props} className="min-w-full border-collapse border border-gray-600" /></div>,
                               th: (props) => <th {...props} className="border border-gray-600 text-left p-3 bg-gray-700/30 font-semibold" />,
