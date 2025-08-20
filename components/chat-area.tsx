@@ -91,17 +91,16 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
 
   return (
     <div className="flex-1 min-h-0 bg-[#212121]">
-      <ScrollArea className="h-full lg:px-44" ref={scrollAreaRef}>
-        <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ">
+      <ScrollArea className="h-full w-full" ref={scrollAreaRef}>
+        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
           {messages.map((message, index) => {
             const isUser = message.role === 'user'
             const isLast = index === messages.length - 1
             const hasContent = Boolean((message.content || '').trim().length)
             return (
-            <div key={message.id} className={`mb-6 flex ${isUser ? 'justify-end' : 'justify-start'} group`}>
-              {/* <div className={`${isUser ? 'max-w-[85%]' : 'max-w-[95%]'}`}> */}
-              <div>
-                <div className={`flex-1 min-w-0`}> 
+            <div key={message.id} className={`mb-6 flex ${isUser ? 'justify-end' : 'justify-start'} w-full group`}>
+              <div className={`${isUser ? 'max-w-[85%]' : 'max-w-[95%]'} min-w-0`}>
+                <div className="w-full"> 
                   {editingId === message.id && isUser ? (
                     <div className="bg-[#2a2a2a] rounded-2xl p-3 border border-[#2f2f2f]">
                       <textarea
@@ -146,7 +145,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                                 ) : (
                                   // File card - show file info
                                   <div 
-                                    className="inline-flex items-center min-w-60 max-w-96 gap-3 px-3 py-2 border border-white/10 rounded-lg cursor-pointer hover:bg-[#3a3a3a] transition-colors"
+                                    className="flex items-center w-full min-w-0 max-w-md gap-3 px-3 py-2 border border-white/10 rounded-lg cursor-pointer hover:bg-[#3a3a3a] transition-colors"
                                     onClick={() => window.open(attachment.secureUrl, '_blank')}
                                   >
                                     <div className="flex-shrink-0 w-8 h-8 bg-pink-500 rounded flex items-center justify-center">
@@ -171,8 +170,8 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                       )}
                       
                       {/* Text content with background only for user messages */}
-                      <div className="flex items-center w-full h-full flex-wrap ">
-                        <div className={`prose prose-invert max-w-none ${isUser ? 'bg-white/10 rounded-3xl px-4 py-2' : ''}`}>
+                      <div className="flex items-start w-full">
+                        <div className={`prose prose-invert w-full break-words ${isUser ? 'bg-white/10 rounded-3xl px-4 py-2' : ''}`}>
                           {(!isUser && isLast && isStreaming && !hasContent) ? (
                             <div className="flex items-center gap-4 min-h-[24px] p-2">
                               <LoadingDots />
@@ -180,8 +179,8 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                             </div>
                           ) : (
                             <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-                              a: (props) => <a {...props} className="text-blue-400 text-[13px] sm:text-[15px] hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer" />,
-                              p: (props) => <p {...props} className={`leading-7 text-[13px] sm:text-[15px] overflow-auto ${isUser ? 'text-left max-w-[250px] sm:max-w-[500px] p-1' : 'text-gray-200'}`} />,
+                              a: (props) => <a {...props} className="text-blue-400 text-[13px] sm:text-[15px] hover:text-blue-300 underline break-words" target="_blank" rel="noopener noreferrer" />,
+                              p: (props) => <p {...props} className={`leading-7 text-[13px] sm:text-[15px] ${isUser ? 'text-left' : 'text-gray-200'} break-words`} />,
                               code: (props) => {
                                 const { children, className } = props as any
                                 const isInline = !className || !/\blanguage-/.test(className)
@@ -248,9 +247,9 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                               h2: (props) => <h2 {...props} className="text-3xl font-light my-5 text-white mt-8" />,
                               h3: (props) => <h3 {...props} className="text-2xl font-light my-4 text-gray-100" />,
                               strong: (props) => <strong {...props} className="font-semibold text-white" />,
-                              ul: (props) => <ul {...props} className="list-disc pl-6 mb-6 space-y-3 text-gray-300" />,
-                              ol: (props) => <ol {...props} className="list-decimal pl-6 mb-6 space-y-3 text-gray-300" />,
-                              li: (props) => <li {...props} className="text-[13px] sm:text-[15px] leading-7 mb-2" />,
+                              ul: (props) => <ul {...props} className="list-disc pl-6 mb-6 space-y-3 text-gray-300 break-words" />,
+                              ol: (props) => <ol {...props} className="list-decimal pl-6 mb-6 space-y-3 text-gray-300 break-words" />,
+                              li: (props) => <li {...props} className="text-[13px] sm:text-[15px] leading-7 mb-2 break-words" />,
                               blockquote: (props) => <blockquote {...props} className="border-l-4 border-gray-500 pl-6 my-6 italic text-gray-300 bg-gray-800/30 py-4 pr-4 rounded-r-lg" />,
                               table: (props) => <div className="overflow-x-auto my-4"><table {...props} className="min-w-full border-collapse border border-gray-600" /></div>,
                               th: (props) => <th {...props} className="border border-gray-600 text-left p-3 bg-gray-700/30 font-semibold" />,

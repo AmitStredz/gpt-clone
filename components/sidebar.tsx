@@ -1,63 +1,110 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { PanelLeft, PenSquare, Search, BookOpen, Sparkles, Users, MoreHorizontal, PencilLine, Trash2 } from "lucide-react"
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs"
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  PanelLeft,
+  PenSquare,
+  Search,
+  BookOpen,
+  Sparkles,
+  Users,
+  MoreHorizontal,
+  PencilLine,
+  Trash2,
+} from "lucide-react";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface SidebarProps {
-  isOpen: boolean
-  onToggle: () => void
-  currentChat: string | null
-  onChatSelect: (chatId: string) => void
-  onNewChat: () => void
+  isOpen: boolean;
+  onToggle: () => void;
+  currentChat: string | null;
+  onChatSelect: (chatId: string) => void;
+  onNewChat: () => void;
 }
 
-type ConversationItem = { id: string; title: string }
+type ConversationItem = { id: string; title: string };
 
-export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat }: SidebarProps) {
-  const [items, setItems] = useState<ConversationItem[]>([])
-  const [isHovered, setIsHovered] = useState(false)
-  const isMobile = useIsMobile()
+export function Sidebar({
+  isOpen,
+  onToggle,
+  currentChat,
+  onChatSelect,
+  onNewChat,
+}: SidebarProps) {
+  const [items, setItems] = useState<ConversationItem[]>([]);
+  const [isHovered, setIsHovered] = useState(false);
+  const isMobile = useIsMobile();
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<ConversationItem | null>(null);
 
   const loadConversations = () => {
     if (isOpen) {
-      fetch('/api/conversations')
-        .then(r => r.ok ? r.json() : Promise.reject())
-        .then(data => setItems((data?.conversations ?? []).map((c: any) => ({ id: c.id, title: c.title }))))
-        .catch(() => setItems([]))
+      fetch("/api/conversations")
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((data) =>
+          setItems(
+            (data?.conversations ?? []).map((c: any) => ({
+              id: c.id,
+              title: c.title,
+            }))
+          )
+        )
+        .catch(() => setItems([]));
     }
-  }
-  useEffect(() => { loadConversations() }, [isOpen, currentChat])
+  };
+  useEffect(() => {
+    loadConversations();
+  }, [isOpen, currentChat]);
 
   const content = (
     <div
-      className={`${isOpen ? 'w-[260px] bg-[#171717]' : 'w-[72px]'}  border-r border-[#3e3e3fcd] flex flex-col h-full transition-all duration-200`}
+      className={`${
+        isOpen ? "w-[260px] bg-[#171717]" : "w-[72px]"
+      }  border-r border-[#3e3e3fcd] flex flex-col h-full transition-all duration-200`}
       onMouseEnter={() => !isOpen && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Logo and Toggle */}
       <div className="flex justify-between items-center p-2">
-        <div className={`relative ${isOpen ? '' : 'flex justify-center w-full'}`}>
-          <Button 
-            variant="ghost" 
+        <div
+          className={`relative ${isOpen ? "" : "flex justify-center w-full"}`}
+        >
+          <Button
+            variant="ghost"
             className="p-3 hover:bg-[#2A2A2A] rounded-lg transition-all duration-200"
-            onClick={() => isHovered ? onToggle() : undefined}
+            onClick={() => (isHovered ? onToggle() : undefined)}
           >
             {isHovered && !isOpen ? (
               <PanelLeft className="w-4 h-4" />
             ) : (
-              <img src="/gpt-logo.svg" className="w-5 h-5"/>
+              <img src="/gpt-logo.svg" className="w-5 h-5" />
             )}
           </Button>
         </div>
         {isOpen && (
-          <Button variant="ghost" size="sm" className="text-white hover:bg-[#2A2A2A] p-2 rounded-lg" onClick={onToggle}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-[#2A2A2A] p-2 rounded-lg"
+            onClick={onToggle}
+          >
             <PanelLeft className="w-4 h-4" />
           </Button>
         )}
@@ -68,7 +115,7 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
         <Button
           variant="ghost"
           className={`w-full text-[14px] text-white hover:bg-[#2A2A2A] rounded-lg px-3 cursor-pointer [font-weight:var(--font-weight-sidebar-nav)] ${
-            isOpen ? 'justify-start' : 'justify-center'
+            isOpen ? "justify-start" : "justify-center"
           }`}
           onClick={onNewChat}
         >
@@ -76,40 +123,40 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
           {isOpen && <span className="ml-3">New chat</span>}
         </Button>
 
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className={`w-full text-[14px] text-white hover:bg-[#2A2A2A] rounded-lg px-3 cursor-pointer [font-weight:var(--font-weight-sidebar-nav)] ${
-            isOpen ? 'justify-start' : 'justify-center'
+            isOpen ? "justify-start" : "justify-center"
           }`}
         >
           <Search className="w-4 h-4 flex-shrink-0" />
           {isOpen && <span className="ml-3">Search chats</span>}
         </Button>
 
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className={`w-full text-[14px] text-white hover:bg-[#2A2A2A] rounded-lg px-3 cursor-pointer [font-weight:var(--font-weight-sidebar-nav)] ${
-            isOpen ? 'justify-start' : 'justify-center'
+            isOpen ? "justify-start" : "justify-center"
           }`}
         >
           <BookOpen className="w-4 h-4 flex-shrink-0" />
           {isOpen && <span className="ml-3">Library</span>}
         </Button>
 
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className={`w-full text-[14px] text-white hover:bg-[#2A2A2A] rounded-lg px-3 [font-weight:var(--font-weight-sidebar-nav)] ${
-            isOpen ? 'justify-start' : 'justify-center'
+            isOpen ? "justify-start" : "justify-center"
           }`}
         >
           <Sparkles className="w-4 h-4 flex-shrink-0" />
           {isOpen && <span className="ml-3">Sora</span>}
         </Button>
 
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className={`w-full text-[14px] text-white hover:bg-[#2A2A2A] rounded-lg px-3 [font-weight:var(--font-weight-sidebar-nav)] ${
-            isOpen ? 'justify-start' : 'justify-center'
+            isOpen ? "justify-start" : "justify-center"
           }`}
         >
           <Users className="w-4 h-4 flex-shrink-0" />
@@ -121,12 +168,25 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
       {isOpen && (
         <>
           <div className="flex-1 px-2 min-h-0 mt-4">
-            <div className="text-xs text-[#8e8ea0] [font-weight:var(--font-weight-sidebar-label)] mb-2 px-3">Chats</div>
+            <div className="text-xs text-[#8e8ea0] [font-weight:var(--font-weight-sidebar-label)] mb-2 px-3">
+              Chats
+            </div>
             <ScrollArea className="h-full">
               <div className="space-y-1 pb-4">
                 {items.map((c) => (
-                  <div key={c.id} className="group flex items-center justtify-between">
-                    <Link href={`/chat/${c.id}`} className="flex-1 max-w-[200px]" onClick={(e) => { e.preventDefault(); onChatSelect(c.id); if (isMobile && isOpen) onToggle() }}>
+                  <div
+                    key={c.id}
+                    className="group flex items-center justtify-between"
+                  >
+                    <Link
+                      href={`/chat/${c.id}`}
+                      className="flex-1 max-w-[200px]"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onChatSelect(c.id);
+                        if (isMobile && isOpen) onToggle();
+                      }}
+                    >
                       <Button
                         variant="ghost"
                         className={`w-full text-[14px] text-white hover:bg-[#2A2A2A] h-10 px-3 cursor-pointer rounded-lg justify-start [font-weight:var(--font-weight-sidebar-chat)] ${
@@ -147,22 +207,34 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-40 bg-[#2f2f2f]">
+                      <DropdownMenuContent
+                        align="start"
+                        className="w-40 bg-[#2f2f2f]"
+                      >
                         <DropdownMenuItem
                           className="cursor-pointer"
                           onClick={async () => {
-                            const next = prompt('Rename chat', c.title)
-                            if (next == null) return
-                            const title = next.trim()
-                            if (!title) return
+                            const next = prompt("Rename chat", c.title);
+                            if (next == null) return;
+                            const title = next.trim();
+                            if (!title) return;
                             try {
-                              const res = await fetch(`/api/conversations/${c.id}`, {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ title })
-                              })
+                              const res = await fetch(
+                                `/api/conversations/${c.id}`,
+                                {
+                                  method: "PATCH",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({ title }),
+                                }
+                              );
                               if (res.ok) {
-                                setItems(prev => prev.map(it => it.id === c.id ? { ...it, title } : it))
+                                setItems((prev) =>
+                                  prev.map((it) =>
+                                    it.id === c.id ? { ...it, title } : it
+                                  )
+                                );
                               }
                             } catch {}
                           }}
@@ -172,22 +244,26 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
                         <DropdownMenuItem
                           className="text-red-400 cursor-pointer"
                           // variant="destructive"
-                          onClick={async () => {
-                            if (!confirm('Delete this chat? This cannot be undone.')) return
-                            try {
-                              const res = await fetch(`/api/conversations/${c.id}`, { method: 'DELETE' })
-                              if (res.ok) {
-                                setItems(prev => prev.filter(it => it.id !== c.id))
-                                if (currentChat === c.id) {
-                                  onNewChat()
-                                }
-                                // Soft refresh list
-                                fetch('/api/conversations').catch(() => {})
-                              }
-                            } catch {}
+                          // onClick={async () => {
+                          //   if (!confirm('Delete this chat? This cannot be undone.')) return
+                          //   try {
+                          //     const res = await fetch(`/api/conversations/${c.id}`, { method: 'DELETE' })
+                          //     if (res.ok) {
+                          //       setItems(prev => prev.filter(it => it.id !== c.id))
+                          //       if (currentChat === c.id) {
+                          //         onNewChat()
+                          //       }
+                          //       // Soft refresh list
+                          //       fetch('/api/conversations').catch(() => {})
+                          //     }
+                          //   } catch {}
+                          // }}
+                          onClick={() => {setDeleteModal(true)
+                            setDeleteItem(c)
                           }}
                         >
-                          <Trash2 className="w-4 h-4 text-red-400 cursor-pointer" /> Delete
+                          <Trash2 className="w-4 h-4 text-red-400 cursor-pointer" />{" "}
+                          Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -220,12 +296,20 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
         </>
       )}
     </div>
-  )
+  );
 
   if (isMobile) {
     return (
-      <Sheet open={isOpen} onOpenChange={(open) => { if (open !== isOpen) onToggle() }}>
-        <SheetContent side="left" className="w-[260px] p-0 bg-[#171717] text-white [&>button]:hidden">
+      <Sheet
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (open !== isOpen) onToggle();
+        }}
+      >
+        <SheetContent
+          side="left"
+          className="w-[260px] p-0 bg-[#171717] text-white [&>button]:hidden"
+        >
           <SheetHeader className="sr-only">
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Mobile navigation sidebar</SheetDescription>
@@ -233,8 +317,61 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
           {content}
         </SheetContent>
       </Sheet>
-    )
+    );
   }
 
-  return content
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(`/api/conversations/${deleteItem?.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setItems((prev: any) => prev.filter((it: any) => it.id !== deleteItem?.id));
+        if (currentChat === deleteItem?.id) {
+          onNewChat();
+        }
+        fetch("/api/conversations").catch(() => {});
+      }
+    } catch {}
+    setDeleteModal(false);
+  };
+
+  if (deleteModal) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+        <div className="bg-[#2f2f2f] p-6 rounded-xl shadow-xl max-w-sm w-full">
+          <h2 className="text-lg font-semibold text-white mb-2">
+            Delete chat?
+          </h2>
+          <p className="text-sm text-gray-300 mb-4">
+            This will delete{" "}
+            <span className="font-medium text-white">{deleteItem?.title}</span>.
+          </p>
+          <p className="text-xs text-gray-400 mb-6">
+            Visit <span className="underline cursor-pointer">settings</span> to
+            delete any memories saved during this chat.
+          </p>
+          <div className="flex justify-end gap-3">
+            <button
+              className="px-4 py-2 rounded-full border border-gray-600 text-gray-200 hover:bg-gray-600"
+              onClick={() => setDeleteModal(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-4 py-2 rounded-full bg-red-600 text-white hover:bg-red-500"
+              onClick={() => {
+                setDeleteModal(false);
+                handleDelete();
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return content;
 }
