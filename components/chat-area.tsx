@@ -91,8 +91,8 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
 
   return (
     <div className="flex-1 min-h-0 bg-[#212121]">
-      <ScrollArea className="h-full" ref={scrollAreaRef}>
-        <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <ScrollArea className="h-full lg:px-44" ref={scrollAreaRef}>
+        <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 ">
           {messages.map((message, index) => {
             const isUser = message.role === 'user'
             const isLast = index === messages.length - 1
@@ -146,7 +146,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                                 ) : (
                                   // File card - show file info
                                   <div 
-                                    className="inline-flex items-center min-w-60 gap-3 px-3 py-2 border border-white/10 rounded-lg cursor-pointer hover:bg-[#3a3a3a] transition-colors"
+                                    className="inline-flex items-center min-w-60 max-w-96 gap-3 px-3 py-2 border border-white/10 rounded-lg cursor-pointer hover:bg-[#3a3a3a] transition-colors"
                                     onClick={() => window.open(attachment.secureUrl, '_blank')}
                                   >
                                     <div className="flex-shrink-0 w-8 h-8 bg-pink-500 rounded flex items-center justify-center">
@@ -171,7 +171,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                       )}
                       
                       {/* Text content with background only for user messages */}
-                      <div className="flex items-center w-full justify-start h-full">
+                      <div className="flex items-center w-full justify-end h-full">
                         <div className={`prose prose-invert max-w-none ${isUser ? 'bg-white/10 rounded-3xl px-4 py-2' : ''}`}>
                           {(!isUser && isLast && isStreaming && !hasContent) ? (
                             <div className="flex items-center gap-4 min-h-[24px] p-2">
@@ -369,7 +369,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
 
                   {/* Edit action - only for user messages */}
                   {message.role === 'user' && editingId !== message.id && (
-                    <div className="flex items-center gap-2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex justify-end items-center gap-2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
                         variant="ghost"
                         size="sm"

@@ -125,8 +125,8 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
             <ScrollArea className="h-full">
               <div className="space-y-1 pb-4">
                 {items.map((c) => (
-                  <div key={c.id} className="group flex items-center">
-                    <Link href={`/chat/${c.id}`} className="flex-1" onClick={(e) => { e.preventDefault(); onChatSelect(c.id); if (isMobile && isOpen) onToggle() }}>
+                  <div key={c.id} className="group flex items-center justtify-between">
+                    <Link href={`/chat/${c.id}`} className="flex-1 max-w-[200px]" onClick={(e) => { e.preventDefault(); onChatSelect(c.id); if (isMobile && isOpen) onToggle() }}>
                       <Button
                         variant="ghost"
                         className={`w-full text-[14px] text-white hover:bg-[#2A2A2A] h-10 px-3 cursor-pointer rounded-lg justify-start [font-weight:var(--font-weight-sidebar-chat)] ${
