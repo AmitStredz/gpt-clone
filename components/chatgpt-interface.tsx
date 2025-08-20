@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation'
 import { Attachment } from "@/lib/types/chat"
 import { SupportedGoogleModel } from "@/lib/ai/provider"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { SignedIn } from "@clerk/nextjs"
 
 export function ChatGPTInterface({ chatId }: { chatId?: string }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -196,6 +197,7 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
 
   return (
     <div className="flex h-screen max-h-screen bg-[#212121] text-white overflow-hidden">
+      <SignedIn>
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
@@ -206,6 +208,7 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
         }}
         onNewChat={handleNewChat}
       />
+      </SignedIn>
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         <ChatArea

@@ -196,7 +196,7 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
           </div>
 
           <div className="p-2 flex-shrink-0">
-            <SignedOut>
+            {/* <SignedOut>
               <SignInButton mode="modal">
                 <Button variant="ghost" className="w-full justify-start hover:bg-[#2A2A2A] rounded-lg h-10 px-3">
                   <div className="w-7 h-7 bg-[#444654] rounded-full flex items-center justify-center text-sm font-medium text-white mr-3">
@@ -208,7 +208,7 @@ export function Sidebar({ isOpen, onToggle, currentChat, onChatSelect, onNewChat
                   </div>
                 </Button>
               </SignInButton>
-            </SignedOut>
+            </SignedOut> */}
             <SignedIn>
               <div className="w-full flex items-center justify-between">
                 <UserButton afterSignOutUrl="/" />

@@ -61,10 +61,10 @@ export const InputArea = forwardRef<HTMLTextAreaElement, InputAreaProps>(functio
     <div className="p-4 flex-shrink-0">
       <div className="max-w-3xl mx-auto">
         <SignedOut>
-          <div className="bg-[#2f2f2f] rounded-3xl p-4 flex items-center justify-between">
+          <div className="bg-[#2f2f2f] rounded-3xl p-4 flex items-center justify-between cursor-not-allowed">
             <div className="text-sm text-[#8e8ea0]">Sign in to start chatting</div>
             <SignInButton mode="modal">
-              <Button className="bg-white text-black hover:bg-gray-200">Sign in</Button>
+              <Button className="bg-white rounded-full text-black hover:bg-gray-200">Sign in</Button>
             </SignInButton>
           </div>
         </SignedOut>
