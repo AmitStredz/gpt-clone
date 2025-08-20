@@ -98,7 +98,7 @@ export const InputArea = forwardRef<HTMLTextAreaElement, InputAreaProps>(functio
                 )}
                 
                 {/* Input row */}
-                <div className="flex items-end space-x-3">
+                <div className="flex items-center space-x-3">
                   {onAttachmentsChange && (
                     <TooltipProvider>
                       <Tooltip>
@@ -137,7 +137,7 @@ export const InputArea = forwardRef<HTMLTextAreaElement, InputAreaProps>(functio
                     onChange={(e) => onChange(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Ask anything"
-                    className="flex-1 bg-transparent border-none text-white placeholder-[#8e8ea0] resize-none min-h-[24px] max-h-32 text-base leading-6 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="flex-1 bg-transparent items-center h-full border-none text-white placeholder-[#8e8ea0] resize-none min-h-[24px] max-h-32 text-base  p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                     rows={1}
                     disabled={Boolean(disabled)}
                   />

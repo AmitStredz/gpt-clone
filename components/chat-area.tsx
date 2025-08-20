@@ -171,7 +171,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                       )}
                       
                       {/* Text content with background only for user messages */}
-                      <div className="flex items-center w-full justify-end h-full">
+                      <div className="flex items-center w-full h-full flex-wrap ">
                         <div className={`prose prose-invert max-w-none ${isUser ? 'bg-white/10 rounded-3xl px-4 py-2' : ''}`}>
                           {(!isUser && isLast && isStreaming && !hasContent) ? (
                             <div className="flex items-center gap-4 min-h-[24px] p-2">
@@ -181,7 +181,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                           ) : (
                             <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
                               a: (props) => <a {...props} className="text-blue-400 text-[13px] sm:text-[15px] hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer" />,
-                              p: (props) => <p {...props} className={`leading-7 text-[13px] sm:text-[15px] ${isUser ? 'text-left max-w-[250px] sm:max-w-[500px] p-1' : 'text-gray-200'}`} />,
+                              p: (props) => <p {...props} className={`leading-7 text-[13px] sm:text-[15px] overflow-auto ${isUser ? 'text-left max-w-[250px] sm:max-w-[500px] p-1' : 'text-gray-200'}`} />,
                               code: (props) => {
                                 const { children, className } = props as any
                                 const isInline = !className || !/\blanguage-/.test(className)
