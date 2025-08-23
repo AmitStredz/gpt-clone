@@ -183,190 +183,190 @@ export function Sidebar({
                       className="flex-1 max-w-[200px]"
                       onClick={(e) => {
                         e.preventDefault();
-  //                       onChatSelect(c.id);
-  //                       if (isMobile && isOpen) onToggle();
-  //                     }}
-  //                   >
-  //                     <Button
-  //                       variant="ghost"
-  //                       className={`w-full text-[14px] text-white hover:bg-[#2A2A2A] h-10 px-3 cursor-pointer rounded-lg justify-start [font-weight:var(--font-weight-sidebar-chat)] ${
-  //                         currentChat === c.id ? "bg-[#2A2A2A]" : ""
-  //                       }`}
-  //                     >
-  //                       <span className="truncate">{c.title}</span>
-  //                     </Button>
-  //                   </Link>
-  //                   <DropdownMenu>
-  //                     <DropdownMenuTrigger asChild>
-  //                       <Button
-  //                         variant="ghost"
-  //                         size="sm"
-  //                         className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 p-2 cursor-pointer"
-  //                         aria-label="Conversation actions"
-  //                       >
-  //                         <MoreHorizontal className="w-4 h-4" />
-  //                       </Button>
-  //                     </DropdownMenuTrigger>
-  //                     <DropdownMenuContent
-  //                       align="start"
-  //                       className="w-40 bg-[#2f2f2f]"
-  //                     >
-  //                       <DropdownMenuItem
-  //                         className="cursor-pointer"
-  //                         onClick={async () => {
-  //                           const next = prompt("Rename chat", c.title);
-  //                           if (next == null) return;
-  //                           const title = next.trim();
-  //                           if (!title) return;
-  //                           try {
-  //                             const res = await fetch(
-  //                               `/api/conversations/${c.id}`,
-  //                               {
-  //                                 method: "PATCH",
-  //                                 headers: {
-  //                                   "Content-Type": "application/json",
-  //                                 },
-  //                                 body: JSON.stringify({ title }),
-  //                               }
-  //                             );
-  //                             if (res.ok) {
-  //                               setItems((prev) =>
-  //                                 prev.map((it) =>
-  //                                   it.id === c.id ? { ...it, title } : it
-  //                                 )
-  //                               );
-  //                             }
-  //                           } catch {}
-  //                         }}
-  //                       >
-  //                         <PencilLine className="w-4 h-4" /> Rename
-  //                       </DropdownMenuItem>
-  //                       <DropdownMenuItem
-  //                         className="text-red-400 cursor-pointer"
-  //                         // variant="destructive"
-  //                         // onClick={async () => {
-  //                         //   if (!confirm('Delete this chat? This cannot be undone.')) return
-  //                         //   try {
-  //                         //     const res = await fetch(`/api/conversations/${c.id}`, { method: 'DELETE' })
-  //                         //     if (res.ok) {
-  //                         //       setItems(prev => prev.filter(it => it.id !== c.id))
-  //                         //       if (currentChat === c.id) {
-  //                         //         onNewChat()
-  //                         //       }
-  //                         //       // Soft refresh list
-  //                         //       fetch('/api/conversations').catch(() => {})
-  //                         //     }
-  //                         //   } catch {}
-  //                         // }}
-  //                         onClick={() => {setDeleteModal(true)
-  //                           setDeleteItem(c)
-  //                         }}
-  //                       >
-  //                         <Trash2 className="w-4 h-4 text-red-400 cursor-pointer" />{" "}
-  //                         Delete
-  //                       </DropdownMenuItem>
-  //                     </DropdownMenuContent>
-  //                   </DropdownMenu>
-  //                 </div>
-  //               ))}
-  //             </div>
-  //           </ScrollArea>
-  //         </div>
+                        onChatSelect(c.id);
+                        if (isMobile && isOpen) onToggle();
+                      }}
+                    >
+                      <Button
+                        variant="ghost"
+                        className={`w-full text-[14px] text-white hover:bg-[#2A2A2A] h-10 px-3 cursor-pointer rounded-lg justify-start [font-weight:var(--font-weight-sidebar-chat)] ${
+                          currentChat === c.id ? "bg-[#2A2A2A]" : ""
+                        }`}
+                      >
+                        <span className="truncate">{c.title}</span>
+                      </Button>
+                    </Link>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 p-2 cursor-pointer"
+                          aria-label="Conversation actions"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="start"
+                        className="w-40 bg-[#2f2f2f]"
+                      >
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={async () => {
+                            const next = prompt("Rename chat", c.title);
+                            if (next == null) return;
+                            const title = next.trim();
+                            if (!title) return;
+                            try {
+                              const res = await fetch(
+                                `/api/conversations/${c.id}`,
+                                {
+                                  method: "PATCH",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({ title }),
+                                }
+                              );
+                              if (res.ok) {
+                                setItems((prev) =>
+                                  prev.map((it) =>
+                                    it.id === c.id ? { ...it, title } : it
+                                  )
+                                );
+                              }
+                            } catch {}
+                          }}
+                        >
+                          <PencilLine className="w-4 h-4" /> Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-red-400 cursor-pointer"
+                          // variant="destructive"
+                          // onClick={async () => {
+                          //   if (!confirm('Delete this chat? This cannot be undone.')) return
+                          //   try {
+                          //     const res = await fetch(`/api/conversations/${c.id}`, { method: 'DELETE' })
+                          //     if (res.ok) {
+                          //       setItems(prev => prev.filter(it => it.id !== c.id))
+                          //       if (currentChat === c.id) {
+                          //         onNewChat()
+                          //       }
+                          //       // Soft refresh list
+                          //       fetch('/api/conversations').catch(() => {})
+                          //     }
+                          //   } catch {}
+                          // }}
+                          onClick={() => {setDeleteModal(true)
+                            setDeleteItem(c)
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-400 cursor-pointer" />{" "}
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
 
-  //         <div className="p-2 flex-shrink-0">
-  //           {/* <SignedOut>
-  //             <SignInButton mode="modal">
-  //               <Button variant="ghost" className="w-full justify-start hover:bg-[#2A2A2A] rounded-lg h-10 px-3">
-  //                 <div className="w-7 h-7 bg-[#444654] rounded-full flex items-center justify-center text-sm font-medium text-white mr-3">
-  //                   N
-  //                 </div>
-  //                 <div className="flex-1 text-left">
-  //                   <div className="text-[14px] text-white [font-weight:var(--font-weight-sidebar-user)]">Amit Stredz</div>
-  //                   <div className="text-xs text-[#8e8ea0] [font-weight:var(--font-weight-sidebar-user)]">Free</div>
-  //                 </div>
-  //               </Button>
-  //             </SignInButton>
-  //           </SignedOut> */}
-  //           <SignedIn>
-  //             <div className="w-full flex items-center justify-between">
-  //               <UserButton afterSignOutUrl="/" />
-  //             </div>
-  //           </SignedIn>
-  //         </div>
-  //       </>
-  //     )}
-  //   </div>
-  // );
+          <div className="p-2 flex-shrink-0">
+            {/* <SignedOut>
+              <SignInButton mode="modal">
+                <Button variant="ghost" className="w-full justify-start hover:bg-[#2A2A2A] rounded-lg h-10 px-3">
+                  <div className="w-7 h-7 bg-[#444654] rounded-full flex items-center justify-center text-sm font-medium text-white mr-3">
+                    N
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="text-[14px] text-white [font-weight:var(--font-weight-sidebar-user)]">Amit Stredz</div>
+                    <div className="text-xs text-[#8e8ea0] [font-weight:var(--font-weight-sidebar-user)]">Free</div>
+                  </div>
+                </Button>
+              </SignInButton>
+            </SignedOut> */}
+            <SignedIn>
+              <div className="w-full flex items-center justify-between">
+                <UserButton afterSignOutUrl="/" />
+              </div>
+            </SignedIn>
+          </div>
+        </>
+      )}
+    </div>
+  );
 
-  // if (isMobile) {
-  //   return (
-  //     <Sheet
-  //       open={isOpen}
-  //       onOpenChange={(open) => {
-  //         if (open !== isOpen) onToggle();
-  //       }}
-  //     >
-  //       <SheetContent
-  //         side="left"
-  //         className="w-[260px] p-0 bg-[#171717] text-white [&>button]:hidden"
-  //       >
-  //         <SheetHeader className="sr-only">
-  //           <SheetTitle>Sidebar</SheetTitle>
-  //           <SheetDescription>Mobile navigation sidebar</SheetDescription>
-  //         </SheetHeader>
-  //         {content}
-  //       </SheetContent>
-  //     </Sheet>
-  //   );
-  // }
+  if (isMobile) {
+    return (
+      <Sheet
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (open !== isOpen) onToggle();
+        }}
+      >
+        <SheetContent
+          side="left"
+          className="w-[260px] p-0 bg-[#171717] text-white [&>button]:hidden"
+        >
+          <SheetHeader className="sr-only">
+            <SheetTitle>Sidebar</SheetTitle>
+            <SheetDescription>Mobile navigation sidebar</SheetDescription>
+          </SheetHeader>
+          {content}
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
-  // const handleDelete = async () => {
-  //   try {
-  //     const res = await fetch(`/api/conversations/${deleteItem?.id}`, {
-  //       method: "DELETE",
-  //     });
-  //     if (res.ok) {
-  //       setItems((prev: any) => prev.filter((it: any) => it.id !== deleteItem?.id));
-  //       if (currentChat === deleteItem?.id) {
-  //         onNewChat();
-  //       }
-  //       fetch("/api/conversations").catch(() => {});
-  //     }
-  //   } catch {}
-  //   setDeleteModal(false);
-  // };
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(`/api/conversations/${deleteItem?.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setItems((prev: any) => prev.filter((it: any) => it.id !== deleteItem?.id));
+        if (currentChat === deleteItem?.id) {
+          onNewChat();
+        }
+        fetch("/api/conversations").catch(() => {});
+      }
+    } catch {}
+    setDeleteModal(false);
+  };
 
-  // if (deleteModal) {
-  //   return (
-  //     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-  //       <div className="bg-[#2f2f2f] p-6 rounded-xl shadow-xl max-w-sm w-full">
-  //         <h2 className="text-lg font-semibold text-white mb-2">
-  //           Delete chat?
-  //         </h2>
-  //         <p className="text-sm text-gray-300 mb-4">
-  //           This will delete{" "}
-  //           <span className="font-medium text-white">{deleteItem?.title}</span>.
-  //         </p>
-  //         <p className="text-xs text-gray-400 mb-6">
-  //           Visit <span className="underline cursor-pointer">settings</span> to
-  //           delete any memories saved during this chat.
-  //         </p>
-  //         <div className="flex justify-end gap-3">
-  //           <button
-  //             className="px-4 py-2 rounded-full border border-gray-600 text-gray-200 hover:bg-gray-600"
-  //             onClick={() => setDeleteModal(false)}
-  //           >
-  //             Cancel
-  //           </button>
-  //           <button
-  //             className="px-4 py-2 rounded-full bg-red-600 text-white hover:bg-red-500"
-  //             onClick={() => {
-  //               setDeleteModal(false);
-  //               handleDelete();
-  //             }}
-  //           >
-  //             Delete
-  //           </button>
+  if (deleteModal) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+        <div className="bg-[#2f2f2f] p-6 rounded-xl shadow-xl max-w-sm w-full">
+          <h2 className="text-lg font-semibold text-white mb-2">
+            Delete chat?
+          </h2>
+          <p className="text-sm text-gray-300 mb-4">
+            This will delete{" "}
+            <span className="font-medium text-white">{deleteItem?.title}</span>.
+          </p>
+          <p className="text-xs text-gray-400 mb-6">
+            Visit <span className="underline cursor-pointer">settings</span> to
+            delete any memories saved during this chat.
+          </p>
+          <div className="flex justify-end gap-3">
+            <button
+              className="px-4 py-2 rounded-full border border-gray-600 text-gray-200 hover:bg-gray-600"
+              onClick={() => setDeleteModal(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-4 py-2 rounded-full bg-red-600 text-white hover:bg-red-500"
+              onClick={() => {
+                setDeleteModal(false);
+                handleDelete();
+              }}
+            >
+              Delete
+            </button>
           </div>
         </div>
       </div>
