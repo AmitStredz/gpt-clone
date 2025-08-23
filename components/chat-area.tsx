@@ -121,7 +121,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                   ) : (
                     <div>
                       {/* File Attachments - ChatGPT style */}
-                      {message.attachments && message.attachments.length > 0 && (
+                      {/* {message.attachments && message.attachments.length > 0 && (
                         <div className="mb-3 space-y-2">
                           {message.attachments.map((attachment) => {
                             const fileName = attachment.originalFileName || attachment.id.split('/').pop() || 'file'
@@ -167,7 +167,7 @@ export function ChatArea({ currentChat, messages, onEditUserMessage, onRegenerat
                             )
                           })}
                         </div>
-                      )}
+                      )} */}
                       
                       {/* Text content with background only for user messages */}
                       <div className={`flex items-start w-full ${isUser ? 'justify-end' : 'justify-start'}`}>
