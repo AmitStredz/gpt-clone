@@ -3,13 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from '@/components/ui/dropdown-menu'
-import { ChevronDown, Zap, Brain, Sparkles } from 'lucide-react'
+  DropdownMenu,  Zap, Brain, Sparkles } from 'lucide-react'
 import { SupportedGoogleModel, getAllModels } from '@/lib/ai/provider'
 
 interface ModelSelectorProps {
@@ -46,18 +40,7 @@ export function ModelSelector({ selectedModel, onModelChange, hasAttachments, ha
       </span>
     )
   }
-
-  const getAutoSelectedModel = () => {
-    if (hasFiles) return 'gemini-1.5-pro'
-    return 'gemini-1.5-flash'
-  }
-
-  const currentModel = selectedModel || getAutoSelectedModel()
-  const currentModelData = models.find(m => m.id === currentModel)
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+ild>
         <Button 
           variant="ghost" 
           size="sm" 
@@ -69,14 +52,6 @@ export function ModelSelector({ selectedModel, onModelChange, hasAttachments, ha
             ) : (
               getModelIcon(currentModel)
             )}
-            <span>
-              {isAutoMode 
-                ? `Auto (${currentModelData?.name || 'Gemini 1.5 Flash'})` 
-                : currentModelData?.name || 'Select Model'
-              }
-            </span>
-            <ChevronDown className="h-3 w-3 opacity-50" />
-          </div>
         </Button>
       </DropdownMenuTrigger>
       
@@ -115,32 +90,11 @@ export function ModelSelector({ selectedModel, onModelChange, hasAttachments, ha
                   {getSpeedBadge(model.capabilities.speed)}
                 </div>
                 <div className="text-xs text-gray-500 truncate">
-                  {model.capabilities.description}
-                </div>
-                <div className="flex gap-2 mt-1">
-                  {model.capabilities.vision && (
-                    <span className="text-xs bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">
-                      Vision
-                    </span>
-                  )}
-                  {model.capabilities.fileAnalysis && (
-                    <span className="text-xs bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">
-                      Files
-                    </span>
+                  
                   )}
                 </div>
               </div>
-              {selectedModel === model.id && <div className="text-blue-500 text-xs">✓</div>}
-            </div>
-          </DropdownMenuItem>
-        ))}
-        
-        {/* Smart Suggestions */}
-        {(hasAttachments || hasFiles) && (
-          <>
-            <DropdownMenuSeparator />
-            <div className="px-2 py-2 text-xs text-gray-500">
-              {hasFiles && (
+              {selectedModel === m
                 <div className="flex items-center gap-1">
                   <Brain className="h-3 w-3" />
                   Gemini Pro recommended for file analysis
