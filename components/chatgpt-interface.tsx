@@ -66,6 +66,19 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
       const lastMessage = msgs[msgs.length - 1]
       if (!lastMessage || lastMessage.role !== 'user') return
 
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-conversation-id': currentChat
+        },
+        body: JSON.stringify({
+          messages: msgs.map((m: any) => ({
+            role: m.role,
+            content: (m.parts || [])
+              .filter((p: any) => p.type === 'text')
+              .map((p: any) => p.text)
+              .join('\n'),
             attachments: m.attachments || []
           }))
         })
@@ -98,7 +111,16 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
           try {
             const event = JSON.parse(json)
             if (event.type === 'text-delta' && event.delta) {
-              
+              assistantContent += event.delta
+              setMessages(prev => prev.map(m =>
+                m.id === assistantId
+                  ? { ...m, parts: [{ type: 'text', text: assistantContent }] }
+                  : m
+              ))
+            }
+          } catch {}
+        }
+      }
     } catch (e) {
       console.error('Failed to regenerate response:', e)
     }
@@ -108,7 +130,14 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
     // Just clear local state and navigate to a clean chat UI.
     setMessages([]);
     setHydratedMessages([]);
-    setCurrentChat(null);{
+    setCurrentChat(null);
+    setAttachments([]);
+    router.push(`/chat/new`);
+  }
+
+  // Hydrate messages after switching chats. Keep inside component to access state.
+  useEffect(() => {
+    const hydrate = async () => {
       if (!currentChat) {
         setHydratedMessages([])
         return
@@ -181,7 +210,15 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
       />
       </SignedIn>
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        <Hea p.text)
+        <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        <ChatArea
+          currentChat={currentChat}
+          messages={(uiMessages.length ? uiMessages : hydratedMessages).map((m: any) => ({
+            id: m.id,
+            role: m.role,
+            content: (m.parts || [])
+              .filter((p: any) => p.type === 'text')
+              .map((p: any) => p.text)
               .join('\n'),
             attachments: m.attachments || []
           })) as any}
@@ -195,7 +232,19 @@ export function ChatGPTInterface({ chatId }: { chatId?: string }) {
               try {
                 await fetch(`/api/messages/${messageId}`, {
                   method: 'PATCH',
-                  headers: { 'Contenments || []
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ conversationId: currentChat, content: newContent })
+                })
+                
+                // Reload conversation from DB to get the pruned state
+                const res = await fetch(`/api/conversations/${currentChat}/messages`, { cache: 'no-store' })
+                if (res.ok) {
+                  const data = await res.json()
+                  const msgs = (data?.messages ?? []).map((m: any) => ({ 
+                    id: m.id, 
+                    role: m.role, 
+                    parts: [{ type: 'text', text: m.content }],
+                    attachments: m.attachments || []
                   }))
                   setHydratedMessages(msgs as any)
                   setMessages(msgs as any)
