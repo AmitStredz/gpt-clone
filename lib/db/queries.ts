@@ -82,15 +82,6 @@ export async function updateConversationTitle(conversationId: string, title: str
   await conversations(db).updateOne({ _id: new ObjectId(conversationId) }, { $set: { title, updatedAt: new Date() } })
 }
 
-export async function updateUserMessageAndPrune(options: { userId: string; conversationId: string; messageId: string; content: string }) {
-  const { userId, conversationId, messageId, content } = options
-  const db = await getDb()
-  const conv = await conversations(db).findOne({ _id: new ObjectId(conversationId), userId })
-  if (!conv) throw new Error('Conversation not found')
-  const msgId = new ObjectId(messageId)
-  const userMsg = await messages(db).findOne({ _id: msgId, conversationId: conv._id, role: 'user' })
-  if (!userMsg) throw new Error('User message not found')
-
   const now = new Date()
   await messages(db).updateOne({ _id: msgId }, { $set: { content, updatedAt: now } })
   const delRes = await messages(db).deleteMany({ conversationId: conv._id, createdAt: { $gt: userMsg.createdAt } })
@@ -99,17 +90,7 @@ export async function updateUserMessageAndPrune(options: { userId: string; conve
 }
 
 export async function pruneAssistantMessageAndRegenerate(options: { userId: string; conversationId: string; messageId: string }) {
-  const { userId, conversationId, messageId } = options
-  const db = await getDb()
-  const conv = await conversations(db).findOne({ _id: new ObjectId(conversationId), userId })
-  if (!conv) throw new Error('Conversation not found')
-  const msgId = new ObjectId(messageId)
-  const assistantMsg = await messages(db).findOne({ _id: msgId, conversationId: conv._id, role: 'assistant' })
-  if (!assistantMsg) throw new Error('Assistant message not found')
-
-  const now = new Date()
-  // Delete the assistant message
-  await messages(db).deleteOne({ _id: msgId })
+  const { uses(db).deleteOne({ _id: msgId })
   await conversations(db).updateOne({ _id: conv._id }, { $set: { updatedAt: now } })
   return { pruned: 1 }
 }
